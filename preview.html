@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Buying vs Renting Simulator | Mindful Sundar</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#0f172a;--card:#111827;--card2:#1f2937;--text:#f9fafb;--muted:#cbd5e1;--accent:#fbbf24;--green:#22c55e;--red:#ef4444;--blue:#38bdf8;--line:#334155;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:var(--text)}
+    header{padding:28px 22px;text-align:center;border-bottom:1px solid var(--line)}
+    header h1{margin:0;font-size:28px;color:var(--accent)}
+    header p{margin:8px auto 0;max-width:900px;color:var(--muted);line-height:1.5}
+    .wrap{display:grid;grid-template-columns:390px 1fr;gap:18px;padding:18px;max-width:1500px;margin:auto}
+    .panel{background:rgba(17,24,39,.94);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h2{font-size:18px;margin:0 0 14px;color:var(--accent)}
+    h3{font-size:15px;margin:18px 0 10px;color:#e5e7eb;border-top:1px solid var(--line);padding-top:14px}
+    label{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);margin:11px 0 5px;gap:10px}
+    input{width:155px;background:#020617;color:#fff;border:1px solid #475569;border-radius:10px;padding:8px;text-align:right}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+    .metric{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:15px}
+    .metric .name{font-size:12px;color:var(--muted)}
+    .metric .value{font-size:22px;font-weight:800;margin-top:6px}
+    .good{color:var(--green)}.bad{color:var(--red)}.blue{color:var(--blue)}.yellow{color:var(--accent)}
+    .grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+    table{width:100%;border-collapse:collapse;background:#020617;border-radius:14px;overflow:hidden}
+    th,td{padding:10px;border-bottom:1px solid #1f2937;font-size:13px;text-align:right}
+    th:first-child,td:first-child{text-align:left}
+    th{color:var(--accent);background:#111827;font-weight:700}
+    td{color:#e5e7eb}
+    .note{font-size:13px;color:var(--muted);line-height:1.55;background:#020617;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+    button{width:100%;margin-top:14px;background:var(--accent);border:none;color:#111827;padding:12px;border-radius:12px;font-weight:800;cursor:pointer}
+    button:hover{filter:brightness(1.05)}
+    canvas{background:#020617;border:1px solid var(--line);border-radius:16px;padding:10px;max-height:390px}
+    .small{font-size:12px;color:#94a3b8;margin-top:8px;line-height:1.45}
+    @media(max-width:1000px){.wrap{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🏠 Home Buying vs Renting Return Simulator</h1>
+  <p>Use this to explain why a house may look profitable on paper, but the real return changes after loan interest, registration, GST, interiors, vacancy, repairs, repainting, broker fee, maintenance, tax and rent-out costs.</p>
+</header>
+<div class="wrap">
+  <section class="panel">
+    <h2>Input Assumptions</h2>
+    <h3>Purchase Details</h3>
+    <label>Home price ₹ <input id="homePrice" type="number" value="12000000"></label>
+    <label>Down payment % <input id="downPaymentPct" type="number" value="25"></label>
+    <label>Loan interest % <input id="loanRate" type="number" step="0.1" value="8.5"></label>
+    <label>Loan tenure years <input id="loanYears" type="number" value="20"></label>
+    <label>Holding period years <input id="holdingYears" type="number" value="10"></label>
+    <label>Property growth % / year <input id="growthRate" type="number" step="0.1" value="5"></label>
+
+    <h3>One-time Costs</h3>
+    <label>Registration + stamp duty % <input id="stampDutyPct" type="number" step="0.1" value="7"></label>
+    <label>GST % <input id="gstPct" type="number" step="0.1" value="3.3"></label>
+    <label>Interior cost ₹ <input id="interiors" type="number" value="1500000"></label>
+    <label>Loan processing ₹ <input id="processing" type="number" value="50000"></label>
+
+    <h3>Rent-Out Details</h3>
+    <label>Monthly rent from own home ₹ <input id="rentIncome" type="number" value="35000"></label>
+    <label>Rent growth % / year <input id="rentGrowth" type="number" step="0.1" value="5"></label>
+    <label>Vacancy months / year <input id="vacancyMonths" type="number" step="0.5" value="1"></label>
+    <label>Broker fee months <input id="brokerMonths" type="number" step="0.5" value="1"></label>
+    <label>Repaint/repair on tenant change ₹ <input id="tenantRepair" type="number" value="150000"></label>
+    <label>Tenant change every years <input id="tenantChangeYears" type="number" value="2"></label>
+    <label>Tenant advance covers repair % <input id="advanceCoverPct" type="number" value="60"></label>
+
+    <h3>Owner Costs</h3>
+    <label>Maintenance ₹ / month <input id="maintenance" type="number" value="3000"></label>
+    <label>House tax ₹ / year <input id="houseTax" type="number" value="25000"></label>
+    <label>Insurance ₹ / year <input id="insurance" type="number" value="10000"></label>
+    <label>Special assessment every years <input id="specialEvery" type="number" value="5"></label>
+    <label>Special assessment ₹ <input id="specialAmount" type="number" value="150000"></label>
+
+    <h3>Rent & Invest Alternative</h3>
+    <label>Rent you pay ₹ / month <input id="rentPaid" type="number" value="35000"></label>
+    <label>Rent paid growth % / year <input id="rentPaidGrowth" type="number" step="0.1" value="5"></label>
+    <label>Alternative investment return % <input id="altReturn" type="number" step="0.1" value="10"></label>
+    <label>Selling broker fee % <input id="sellBrokerPct" type="number" step="0.1" value="2"></label>
+    <button onclick="calculate()">Calculate Scenarios</button>
+    <div class="small">Default values are inspired by the Vinoth story from your script. Change numbers based on your city and property.</div>
+  </section>
+
+  <main>
+    <section class="cards">
+      <div class="metric"><div class="name">Total Initial Cost</div><div id="initialCost" class="value yellow">₹0</div></div>
+      <div class="metric"><div class="name">Monthly EMI</div><div id="emi" class="value blue">₹0</div></div>
+      <div class="metric"><div class="name">Net Wealth: Buy + Rent Out</div><div id="netWealthBuy" class="value good">₹0</div></div>
+      <div class="metric"><div class="name">Net Wealth: Rent + Invest</div><div id="netWealthAlt" class="value good">₹0</div></div>
+    </section>
+
+    <section class="grid2">
+      <div class="panel">
+        <h2>Scenario Comparison</h2>
+        <canvas id="chart"></canvas>
+        <div class="note" id="insight"></div>
+      </div>
+      <div class="panel">
+        <h2>Real Profit Summary</h2>
+        <table>
+          <tbody id="summaryRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>Year-wise Cashflow for Buy + Rent Out</h2>
+      <table>
+        <thead><tr><th>Year</th><th>Rent Received</th><th>EMI Paid</th><th>Owner Costs</th><th>Net Cashflow</th><th>Property Value</th></tr></thead>
+        <tbody id="yearRows"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+let chart;
+const ids = ['homePrice','downPaymentPct','loanRate','loanYears','holdingYears','growthRate','stampDutyPct','gstPct','interiors','processing','rentIncome','rentGrowth','vacancyMonths','brokerMonths','tenantRepair','tenantChangeYears','advanceCoverPct','maintenance','houseTax','insurance','specialEvery','specialAmount','rentPaid','rentPaidGrowth','altReturn','sellBrokerPct'];
+ids.forEach(id => document.getElementById(id).addEventListener('input', calculate));
+function n(id){return Number(document.getElementById(id).value)||0}
+function money(v){
+  const sign = v < 0 ? '-' : '';
+  v = Math.abs(v);
+  if(v >= 10000000) return sign + '₹' + (v/10000000).toFixed(2) + ' Cr';
+  if(v >= 100000) return sign + '₹' + (v/100000).toFixed(2) + ' L';
+  return sign + '₹' + Math.round(v).toLocaleString('en-IN');
+}
+function emi(p, annual, years){
+  const r = annual/100/12, m = years*12;
+  if(r===0) return p/m;
+  return p*r*Math.pow(1+r,m)/(Math.pow(1+r,m)-1);
+}
+function calculate(){
+  const hp=n('homePrice'), dpPct=n('downPaymentPct')/100, loanRate=n('loanRate'), loanYears=n('loanYears'), years=n('holdingYears');
+  const loan=hp*(1-dpPct), down=hp*dpPct, monthlyEmi=emi(loan,loanRate,loanYears);
+  const reg=hp*n('stampDutyPct')/100, gst=hp*n('gstPct')/100, interiors=n('interiors'), processing=n('processing');
+  const initialCost=down+reg+gst+interiors+processing;
+  const propGrowth=n('growthRate')/100, rentGrowth=n('rentGrowth')/100, altReturn=n('altReturn')/100;
+  const sellBrokerPct=n('sellBrokerPct')/100;
+  let rent=n('rentIncome'), rentPaid=n('rentPaid'), totalRentIncome=0, totalEmi=0, ownerCosts=0, netCash=0;
+  let rows='';
+  for(let y=1;y<=years;y++){
+    const rentReceived=rent*(12-n('vacancyMonths'));
+    const broker = rent*n('brokerMonths');
+    let repair=0;
+    if(n('tenantChangeYears')>0 && y % n('tenantChangeYears') === 0){ repair = n('tenantRepair')*(1-n('advanceCoverPct')/100); }
+    const regularCosts = n('maintenance')*12 + n('houseTax') + n('insurance');
+    const special = (n('specialEvery')>0 && y % n('specialEvery') === 0) ? n('specialAmount') : 0;
+    const cost = regularCosts + broker + repair + special;
+    const emiPaid = monthlyEmi*12;
+    const cf = rentReceived - emiPaid - cost;
+    const propertyValue = hp*Math.pow(1+propGrowth,y);
+    totalRentIncome += rentReceived; totalEmi += emiPaid; ownerCosts += cost; netCash += cf;
+    rows += `<tr><td>${y}</td><td>${money(rentReceived)}</td><td>${money(emiPaid)}</td><td>${money(cost)}</td><td class="${cf>=0?'good':'bad'}">${money(cf)}</td><td>${money(propertyValue)}</td></tr>`;
+    rent *= (1+rentGrowth);
+  }
+  document.getElementById('yearRows').innerHTML=rows;
+  const saleValue=hp*Math.pow(1+propGrowth,years);
+  const saleBroker=saleValue*sellBrokerPct;
+  const remainingLoan = Math.max(0, loan - (monthlyEmi*12*years - loan*loanRate/100*years)); // simplified approximation for display
+  const saleNet=saleValue-saleBroker;
+  const buyRentOutWealth=saleNet + netCash - initialCost;
+
+  let investCorpus=initialCost;
+  let totalRentPaid=0;
+  let rp=rentPaid;
+  for(let y=1;y<=years;y++){
+    investCorpus *= (1+altReturn);
+    const annualRent=rp*12;
+    totalRentPaid += annualRent;
+    rp *= (1+n('rentPaidGrowth')/100);
+  }
+  const rentInvestWealth=investCorpus-totalRentPaid;
+  const ownStayWealth=saleNet - initialCost - totalEmi - ownerCosts;
+  const grossProfit=saleValue-hp;
+  const realProfit=buyRentOutWealth;
+  document.getElementById('initialCost').textContent=money(initialCost);
+  document.getElementById('emi').textContent=money(monthlyEmi);
+  document.getElementById('netWealthBuy').textContent=money(buyRentOutWealth);
+  document.getElementById('netWealthAlt').textContent=money(rentInvestWealth);
+
+  const summary = [
+    ['Property sale value', saleValue],['Gross profit seen by people', grossProfit],['Total initial cost', initialCost],['Total EMI paid', totalEmi],['Total rent received', totalRentIncome],['Owner costs', ownerCosts],['Selling broker fee', saleBroker],['Real wealth: Buy + rent out', buyRentOutWealth],['Real wealth: Self-use home', ownStayWealth],['Rent + invest wealth', rentInvestWealth]
+  ];
+  document.getElementById('summaryRows').innerHTML=summary.map(r=>`<tr><td>${r[0]}</td><td class="${r[1]>=0?'good':'bad'}">${money(r[1])}</td></tr>`).join('');
+  const diff=buyRentOutWealth-rentInvestWealth;
+  document.getElementById('insight').innerHTML = diff>=0 ? `In this scenario, buying and renting out the home is ahead by <b class="good">${money(diff)}</b>. Still, check the cashflow stress because EMI can be much higher than rent.` : `In this scenario, rent + invest is ahead by <b class="good">${money(Math.abs(diff))}</b>. This shows why gross property profit alone can be misleading.`;
+  const data=[ownStayWealth,buyRentOutWealth,rentInvestWealth];
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById('chart'),{
+    type:'bar',
+    data:{labels:['Buy & Self-use','Buy & Rent Out','Rent + Invest'],datasets:[{label:'Net Wealth after holding period',data:data}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:'#fff'}}},scales:{x:{ticks:{color:'#fff'},grid:{color:'#334155'}},y:{ticks:{color:'#fff',callback:v=>money(v)},grid:{color:'#334155'}}}}
+  });
+}
+calculate();
+</script>
+</body>
+</html>
